@@ -94,7 +94,7 @@ const profileData = {
     },
     {
       role: "DevSecOps / AppSec Consultant",
-      company: "Maya (Office of the CISO)",
+      company: "Maya",
       location: "Mandaluyong City, Philippines",
       period: "January 2022 - June 2023",
       duties: [
@@ -364,7 +364,7 @@ export default function App() {
               </h2>
 
               <p className="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                Expertise in crafting robust, automated, audit-ready CI/CD pipelines, integrating enterprise SAST/DAST/SCA utilities, and executing detailed security testing across web and mobile platforms. Formerly at <span className="text-white font-semibold">Maya CISO</span>, <span className="text-white font-semibold">ING Hubs</span>, and <span className="text-white font-semibold">Globe Telecom</span>.
+                Expertise in crafting robust, automated, audit-ready CI/CD pipelines, integrating enterprise SAST/DAST/SCA utilities, and executing detailed security testing across web and mobile platforms. Formerly at <span className="text-white font-semibold">Maya</span>, <span className="text-white font-semibold">ING Hubs</span>, and <span className="text-white font-semibold">Globe Telecom</span>.
               </p>
 
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4">
