@@ -25,7 +25,7 @@ const SendIcon = () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" 
 
 // Web3Forms API Integration: Get a free Access Key from https://web3forms.com/
 // You can also define VITE_WEB3FORMS_KEY in your environment variables.
-const WEB3FORMS_ACCESS_KEY = "YOUR_WEB3FORMS_ACCESS_KEY_HERE";
+const WEB3FORMS_ACCESS_KEY = "0d8ddbca-27b3-4136-9a15-d7e95bf8a504";
 
 const profileData = {
   name: "Cederic Martinez",
