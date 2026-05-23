@@ -180,7 +180,7 @@ export default function App() {
   const [terminalInput, setTerminalInput] = useState('');
   const [expandedExp, setExpandedExp] = useState(0);
   const [copiedText, setCopiedText] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', message: '', botcheck: '' });
   const [formStatus, setFormStatus] = useState('');
   const terminalEndRef = useRef(null);
 
@@ -207,7 +207,10 @@ export default function App() {
           { text: 'Available commands:', type: 'output' },
           { text: '  about          - Brief overview of Cederic', type: 'output' },
           { text: '  skills         - List core technologies and tools', type: 'output' },
+          { text: '  experience     - Display career & professional history', type: 'output' },
           { text: '  certs          - View cybersecurity credentials', type: 'output' },
+          { text: '  scan           - Run dynamic portfolio security scanners', type: 'output' },
+          { text: '  resume         - Retrieve secure PDF resume link', type: 'output' },
           { text: '  contact        - Display communication protocols', type: 'output' },
           { text: '  clear          - Flush terminal history', type: 'output' },
           { text: '  neofetch       - Display stylized system specs', type: 'output' }
@@ -231,6 +234,17 @@ export default function App() {
           { text: '  Languages: Python, PHP, CodeIgniter, Bash, JS, C#', type: 'output' }
         ];
         break;
+      case 'experience':
+      case 'work':
+        response = [
+          { text: promptLine, type: 'command' },
+          { text: '--- Professional Journey ---', type: 'output' },
+          ...profileData.experiences.map(exp => ({
+            text: `  [+] ${exp.role} at ${exp.company} (${exp.period})`,
+            type: 'output'
+          }))
+        ];
+        break;
       case 'certs':
         response = [
           { text: promptLine, type: 'command' },
@@ -239,6 +253,28 @@ export default function App() {
             text: `  [✓] ${c.title} (${c.issuer} - ${c.date})`,
             type: 'output'
           }))
+        ];
+        break;
+      case 'scan':
+        response = [
+          { text: promptLine, type: 'command' },
+          { text: '[+] Launching dynamic AppSec vulnerability scan...', type: 'output' },
+          { text: '[+] Auditing static React virtual DOM structure... [SECURE]', type: 'system' },
+          { text: '[+] Checking TLS header configurations... [SECURE]', type: 'system' },
+          { text: '[+] Testing inputs for XSS, SQLi, and prototype pollution... [COMPLIANT]', type: 'system' },
+          { text: '[+] Assessing package dependency graph (Vite / React)... [0 VULNERABILITIES]', type: 'system' },
+          { text: '[✔] Scan complete. Target is hardened. Compliance status: 100% SECURE.', type: 'welcome' }
+        ];
+        break;
+      case 'resume':
+      case 'cv':
+        setTimeout(() => {
+          window.open('./resume.pdf', '_blank');
+        }, 1000);
+        response = [
+          { text: promptLine, type: 'command' },
+          { text: '[!] Dispatching secure payload request: cederic_martinez_resume.pdf', type: 'system' },
+          { text: '[!] Connection established. Opening resume in secondary sandbox window...', type: 'output' }
         ];
         break;
       case 'contact':
@@ -293,6 +329,25 @@ export default function App() {
       setFormStatus('error');
       return;
     }
+
+    if (formData.botcheck) {
+      // Silently discard spam bots
+      setFormStatus('success');
+      setFormData({ name: '', email: '', message: '', botcheck: '' });
+      return;
+    }
+
+    const lastSubmitted = localStorage.getItem('last_contact_submit');
+    const now = Date.now();
+    if (lastSubmitted && now - parseInt(lastSubmitted, 10) < 1000 * 60 * 5) { // 5 minutes limit
+      setFormStatus('error');
+      setTerminalHistory(prev => [
+        ...prev,
+        { text: `[✖] Pipeline transmission blocked: Rate limit exceeded. Please wait 5 minutes between messages.`, type: 'error' }
+      ]);
+      return;
+    }
+
     setFormStatus('sending');
 
     const accessKey = import.meta.env.VITE_WEB3FORMS_KEY || WEB3FORMS_ACCESS_KEY;
@@ -307,7 +362,8 @@ export default function App() {
           { text: `[!] (Simulated) Incoming packet verified from ${formData.name} (${formData.email})`, type: 'system' },
           { text: `[!] Tunnel safe pipeline transmission complete (Configure WEB3FORMS_ACCESS_KEY for actual email delivery).`, type: 'system' }
         ]);
-        setFormData({ name: '', email: '', message: '' });
+        setFormData({ name: '', email: '', message: '', botcheck: '' });
+        localStorage.setItem('last_contact_submit', Date.now().toString());
       }, 1200);
       return;
     }
@@ -337,7 +393,8 @@ export default function App() {
           { text: `[!] Secure connection established. Packet verified from ${formData.name} (${formData.email})`, type: 'system' },
           { text: `[!] Secure pipeline transmission completed successfully. Email dispatched.`, type: 'system' }
         ]);
-        setFormData({ name: '', email: '', message: '' });
+        setFormData({ name: '', email: '', message: '', botcheck: '' });
+        localStorage.setItem('last_contact_submit', Date.now().toString());
       } else {
         throw new Error(result.message || 'Transmission failed');
       }
@@ -691,7 +748,7 @@ export default function App() {
 
             <div className="px-6 py-3 bg-slate-900 border-t border-slate-800/80 flex flex-wrap gap-2 items-center text-xs">
               <span className="text-slate-500 font-mono text-[11px] mr-2">SHORTCUTS:</span>
-              {['neofetch', 'about', 'skills', 'certs', 'contact', 'clear'].map(cmd => (
+              {['neofetch', 'about', 'skills', 'experience', 'certs', 'scan', 'resume', 'contact', 'clear'].map(cmd => (
                 <button key={cmd} onClick={() => processCommand(cmd)} className="px-2.5 py-1 rounded bg-slate-950 hover:bg-emerald-500 hover:text-slate-950 text-emerald-400 font-mono border border-slate-800 transition-colors">./{cmd}</button>
               ))}
             </div>
@@ -723,6 +780,17 @@ export default function App() {
 
             <div className="lg:col-span-7">
               <form onSubmit={handleFormSubmit} className="space-y-4">
+                {/* Honeypot field for spam prevention */}
+                <input
+                  type="text"
+                  name="botcheck"
+                  value={formData.botcheck}
+                  onChange={(e) => setFormData({ ...formData, botcheck: e.target.value })}
+                  className="hidden"
+                  style={{ display: 'none' }}
+                  tabIndex="-1"
+                  autoComplete="off"
+                />
                 <div className="grid sm:grid-cols-2 gap-4">
                   <input
                     type="text"
