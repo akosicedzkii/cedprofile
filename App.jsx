@@ -23,6 +23,10 @@ const ZapIcon = () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" s
 const CheckCircleIcon = () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const SendIcon = () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>;
 
+// Web3Forms API Integration: Get a free Access Key from https://web3forms.com/
+// You can also define VITE_WEB3FORMS_KEY in your environment variables.
+const WEB3FORMS_ACCESS_KEY = "YOUR_WEB3FORMS_ACCESS_KEY_HERE";
+
 const profileData = {
   name: "Cederic Martinez",
   title: "DevSecOps & Cybersecurity Engineer",
@@ -283,22 +287,68 @@ export default function App() {
     document.body.removeChild(textarea);
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) {
       setFormStatus('error');
       return;
     }
     setFormStatus('sending');
-    setTimeout(() => {
-      setFormStatus('success');
+
+    const accessKey = import.meta.env.VITE_WEB3FORMS_KEY || WEB3FORMS_ACCESS_KEY;
+    const isMock = !accessKey || accessKey === 'YOUR_WEB3FORMS_ACCESS_KEY_HERE';
+
+    if (isMock) {
+      // Simulated fallback flow
+      setTimeout(() => {
+        setFormStatus('success');
+        setTerminalHistory(prev => [
+          ...prev,
+          { text: `[!] (Simulated) Incoming packet verified from ${formData.name} (${formData.email})`, type: 'system' },
+          { text: `[!] Tunnel safe pipeline transmission complete (Configure WEB3FORMS_ACCESS_KEY for actual email delivery).`, type: 'system' }
+        ]);
+        setFormData({ name: '', email: '', message: '' });
+      }, 1200);
+      return;
+    }
+
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          access_key: accessKey,
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+          from_name: `${formData.name} (Portfolio Contact Form)`,
+          subject: `New Secure Contact Message from ${formData.name}`
+        })
+      });
+
+      const result = await response.json();
+      if (response.ok && result.success) {
+        setFormStatus('success');
+        setTerminalHistory(prev => [
+          ...prev,
+          { text: `[!] Secure connection established. Packet verified from ${formData.name} (${formData.email})`, type: 'system' },
+          { text: `[!] Secure pipeline transmission completed successfully. Email dispatched.`, type: 'system' }
+        ]);
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        throw new Error(result.message || 'Transmission failed');
+      }
+    } catch (err) {
+      console.error('Contact Form Error:', err);
+      setFormStatus('error');
       setTerminalHistory(prev => [
         ...prev,
-        { text: `[!] Incoming packet verified from ${formData.name} (${formData.email})`, type: 'system' },
-        { text: `[!] Tunnel safe pipeline transmission complete.`, type: 'system' }
+        { text: `[✖] Pipeline transmission failure: ${err.message}`, type: 'error' }
       ]);
-      setFormData({ name: '', email: '', message: '' });
-    }, 1200);
+    }
   };
 
   const filteredSkills = profileData.skills.filter(s => {
